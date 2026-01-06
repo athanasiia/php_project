@@ -4,9 +4,9 @@ import {Link} from "react-router-dom";
 
 function HomePage() {
     return (
-        <div>
+        <div className="home">
             <Link to="/users/new">
-                <button>Add new user</button>
+                <button className="home-button">Add new user</button>
             </Link>
         </div>
     );

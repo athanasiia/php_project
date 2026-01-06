@@ -57,7 +57,7 @@ function UserForm() {
     }
 
     return (
-        <form method="post" onSubmit={handleSubmit}>
+        <form method="post" onSubmit={handleSubmit} className="user-form">
             <h2>Create new user</h2>
 
             <div style={{color: 'red', display: errors ? 'block' : 'none'}}>{errors}</div>
@@ -69,6 +69,7 @@ function UserForm() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="exapmle@mail.com"
+                    required
                 />
             </div>
 
@@ -80,6 +81,7 @@ function UserForm() {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="John Doe"
+                    required
                 />
             </div>
 
@@ -96,12 +98,13 @@ function UserForm() {
                     value={formData.city}
                     onChange={handleChange}
                     placeholder="New York"
+                    required
                 />
             </div>
 
             <div>
                 <label>Gender</label>
-                <select name="gender" value={formData.gender} onChange={handleChange}>
+                <select name="gender" value={formData.gender} onChange={handleChange} required>
                     <option value="">Select gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
@@ -110,7 +113,7 @@ function UserForm() {
 
             <div>
                 <label>Status</label>
-                <select name="status" value={formData.status} onChange={handleChange}>
+                <select name="status" value={formData.status} onChange={handleChange} required>
                     <option value="">Select status</option>
                     <option value="active">Active user</option>
                     <option value="inactive">Inactive user</option>

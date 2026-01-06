@@ -1,0 +1,22 @@
+.user-form {
+    background-color: #e0dcdc;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 60px;
+    border-radius: 20px;
+}
+
+.user-form > div {
+    width: 100%;
+}
+
+.user-form > div > label {
+    display: block;
+}
+
+.user-form > div > input, .user-form > div > select {
+    width: 100%;
+    border-radius: 5px;
+    font: inherit;
+}

@@ -16,7 +16,7 @@ function ResultPage() {
     }
 
     return (
-        <div>
+        <div className='result'>
             <ul>
                 <li><strong>Email:</strong> {userData.email}</li>
                 <li><strong>Name:</strong> {userData.name}</li>
