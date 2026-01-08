@@ -1,5 +1,5 @@
 import './UserForm.css';
-import React, {useState} from "react";
+import {useState} from "react";
 import SelectCountry from "../components/SelectCountry.jsx";
 import {userFormErrors} from "../validation.js";
 import {useNavigate} from "react-router-dom";
