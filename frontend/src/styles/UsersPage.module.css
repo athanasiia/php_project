@@ -1,0 +1,150 @@
+.usersContainer {
+    padding: 20px;
+}
+
+.tableHeader {
+    padding: 15px;
+}
+
+.deleteButton {
+    padding: 10px 20px;
+    background-color: #e14050;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.filtersPanel {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+}
+
+.searchBox {
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+}
+
+.searchInput {
+    padding: 10px 35px 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.filterGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filterGroup label {
+    font-weight: 500;
+    color: #555;
+}
+
+.filterSelect {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    min-width: 120px;
+}
+
+.sortButtons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sortButton {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.usersTable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: auto;
+}
+
+.usersTable th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
+}
+
+.usersTable td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.editButton {
+    padding: 6px 12px;
+    background-color: #9873e1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modalContent {
+    padding: 30px;
+    text-align: center;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modalButton {
+    background-color: #9873e1;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    max-width: 250px;
+}

@@ -3,9 +3,18 @@ return [
     'GET' => [
         '/' => ["app\controllers\AppController", "index"],
         '/users/new' => ["app\controllers\UserController", "new"],
-        '/users/result' => ["app\controllers\UserController", "result"],
+        '/users' => ["app\controllers\UserController", "index"],
+        '/api/users/{id}' => ["app\controllers\UserController", "show"],
+        '/users/{id}/edit' => ["app\controllers\UserController", "edit"],
+        '/api/users' => ["app\controllers\UserController", "apiGetAllUsers"],
     ],
     'POST' => [
-        '/users/create' => ["app\controllers\UserController", "create"],
+        '/api/users/create' => ["app\controllers\UserController", "create"],
     ],
+    'PUT' => [
+        '/api/users/{id}' => ["app\controllers\UserController", "update"],
+    ],
+    'DELETE' => [
+        '/api/users/{id}' => ["app\controllers\UserController", "delete"],
+    ]
 ];

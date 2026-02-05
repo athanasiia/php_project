@@ -14,8 +14,12 @@ class App
         $method = $_SERVER['REQUEST_METHOD'];
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         foreach ($this->routes[$method] ?? [] as $route => $handler) {
-            if($route === $uri) {
-                return $this->callHandler($handler);
+            $pattern = preg_replace('/\{(\w+)}/', '([^/]+)', $route);
+            $pattern = "#^{$pattern}$#";
+
+            if (preg_match($pattern, $uri, $matches)) {
+                $params = array_slice($matches, 1);
+                return $this->callHandler($handler, $params);
             }
         }
 
@@ -23,11 +27,11 @@ class App
         echo "404 Not Found";
     }
 
-    private function callHandler($handler) {
+    private function callHandler($handler, $params = []) {
         $controllerClass = $handler[0];
         $action = $handler[1];
 
         $controllerInstance = new $controllerClass();
-        return $controllerInstance->$action();
+        return call_user_func_array([$controllerInstance, $action], $params);
     }
 }

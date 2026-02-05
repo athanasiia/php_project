@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create user</title>
-    <link rel="stylesheet" href="/dist/assets/index-DQ3P1g1z.css">
+    <title>Manage users</title>
+    <link rel="stylesheet" href="/dist/assets/index-BntfJenR.css">
 </head>
 <body>
     <div id="root"></div>
-    <script src="/dist/assets/index-fh3fXEzx.js"></script>
+    <script src="/dist/assets/index--yFaecvy.js"></script>
 </body>
 </html>

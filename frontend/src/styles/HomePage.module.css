@@ -1,0 +1,10 @@
+.home {
+    display: flex;
+    flex-direction: column;
+    gap: 80px;
+}
+
+.homeButton {
+    background-color: #e0dcdc;
+    font-size: 2em;
+}
