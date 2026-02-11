@@ -1,15 +1,19 @@
 <?php
 
+//add
+
+// TODO: add PHPDoc comment for class - describe what this migration does
 class CreateUserTable
 {
-    private $db;
+    private $db; // TODO: add type hint - specify type (e.g., PDO, mysqli, or custom DatabaseConnection type)
 
-    public function __construct($db)
+    public function __construct($db) // TODO: add type hint for parameter - specify database connection type
     {
         $this->db = $db;
     }
 
-    public function up()
+    // TODO: add PHPDoc comment - @return void, describe what this method does
+    public function up(): void
     {
         $sql = "CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -21,12 +25,13 @@ class CreateUserTable
             status ENUM('active', 'inactive') NOT NULL DEFAULT 'active'
         ) ENGINE=InnoDB;";
 
-        $this->db->query($sql);
+        $this->db->query($sql); // TODO: add error handling - wrap in try-catch, check query result, throw exception on failure 
     }
 
-    public function down()
+    // TODO: add PHPDoc comment - @return void, describe what this method does
+    public function down(): void
     {
-        $sql = "DROP TABLE IF EXISTS users";
-        $this->db->query($sql);
+        $sql = "DROP TABLE IF EXISTS users"; // TODO: extract table name to constant - define TABLE_NAME constant for reusability
+        $this->db->query($sql); // TODO: add error handling - wrap in try-catch, check query result, throw exception on failure
     }
 }

@@ -4,21 +4,22 @@ use database\DatabaseConnection;
 
 require_once __DIR__ . '/../bootstrap/autoload.php';
 
-$command = $argv[1] ?? null;
+$command = $argv[1] ?? null; // TODO: add validation - check if command is provided, show usage if not
 $argument = $argv[2] ?? null;
 
 $db = DatabaseConnection::getInstance()->connect();
 
-$migrations = new system\Migrations($db, BASE_PATH . '/database/migrations');
-$seeds = new system\Seeds($db, BASE_PATH . '/database/seeds');
+$migrations = new system\Migrations($db, BASE_PATH . '/database/migrations'); // try to use __construct() instead of new
+$seeds = new system\Seeds($db, BASE_PATH . '/database/seeds'); // try to use __construct() instead of new
 
-function handleMigrate($migrations, $argument = null)
+//Need to add accessors before methods like public and etc
+function handleMigrate($migrations, $argument = null) //add the return type and type of argument
 {
     echo "Running migrations...\n";
 
     if ($argument) {
         try {
-            $result = $migrations->runMigration($argument, "up");
+            $result = $migrations->runMigration($argument, "up");  //extract magic string "up" to a constant (e.g., MIGRATION_DIRECTION_UP)
 
             if (empty($result)) {
                 echo "No such migration.\n";
@@ -27,10 +28,10 @@ function handleMigrate($migrations, $argument = null)
             }
         } catch (\Exception $e) {
             echo "Migration failed: " . $e->getMessage() . "\n";
-            exit(1);
+            exit(1); // throw error instead of exit
         }
         return;
-    }
+    } // I think we need fot this condition separate method which can be used
 
     try {
         $results = $migrations->migrate();
@@ -46,11 +47,10 @@ function handleMigrate($migrations, $argument = null)
         }
     } catch (\Exception $e) {
         echo "Migration failed: " . $e->getMessage() . "\n";
-        exit(1);
-    }
+        exit(1); //throw error instead of exit
 }
 
-function handleRollback($migrations)
+function handleRollback($migrations)  //add the return type and type of argument
 {
     echo "Rolling back last migration...\n";
 
@@ -64,11 +64,12 @@ function handleRollback($migrations)
         }
     } catch (\Exception $e) {
         echo "Rollback failed: " . $e->getMessage() . "\n";
-        exit(1);
+        exit(1); //throw error instead of exit
     }
 }
 
-function handleSeed($seeds, $argument = null) {
+function handleSeed($seeds, $argument = null) //add the return type and type of argument
+{
     echo "Running seeds...\n";
 
     try {
@@ -81,11 +82,13 @@ function handleSeed($seeds, $argument = null) {
         }
     } catch (Exception $e) {
         echo "Seeds failed: " . $e->getMessage() . "\n";
-        exit(1);
+        exit(1); //throw error instead of exit
     }
 }
 
-switch ($command) {
+switch ($command) // try to use match instead of switch and this logic should be in a function
+
+{
     case 'migrate':
         handleMigrate($migrations, $argument);
         break;

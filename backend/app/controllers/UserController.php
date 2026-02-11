@@ -2,6 +2,7 @@
 namespace app\controllers;
 
 use database\DatabaseConnection;
+use Exception;
 
 class UserController
 {
@@ -11,11 +12,14 @@ class UserController
         $this->db = DatabaseConnection::getInstance();
     }
 
-    public function new() {
+    public function new() //need add the return type
+    {
         require VIEWS_PATH . "/users/new.php";
     }
 
-    public function create() {
+    public function create()  //need add the return type
+
+    {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
 
@@ -54,12 +58,13 @@ class UserController
         }
     }
 
-    public function index()
+    public function index() //need add the return type
     {
         require VIEWS_PATH . "/users/new.php";
     }
 
-    public function show($id) {
+    public function show($id)  //need add the return type and type of argument
+    {
         try {
             $user = $this->db->getUser($id);
             $this->sendJsonResponse(true, 'User found', $user);
@@ -68,11 +73,13 @@ class UserController
         }
     }
 
-    public function edit() {
+    public function edit() //need add the return type
+    {
         require VIEWS_PATH . "/users/new.php";
     }
 
-    public function update($id) {
+    public function update($id) //need add the return type and type of argument
+    {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
 
@@ -97,7 +104,9 @@ class UserController
         }
     }
 
-    public function delete($id) {
+    public function delete($id) //need add the return type and type of argument
+
+    {
         try {
             if (!is_numeric($id) || $id <= 0) {
                 $this->sendJsonResponse(false, 'Invalid user ID', null, ['id' => 'Invalid ID']);
@@ -123,7 +132,9 @@ class UserController
         }
     }
 
-    public function apiGetAllUsers() {
+    public function apiGetAllUsers() //need add the return type
+
+    {
         header('Content-Type: application/json; charset=utf-8');
 
         $filters = [
@@ -160,7 +171,12 @@ class UserController
         }
     }
 
-    private function sendJsonResponse($success, $message, $data = null, $errors = null) {
+    /**
+     * @throws \JsonException
+     */
+    private function sendJsonResponse($success, $message, $data = null, $errors = null)  //need add the return type and type of argument
+
+    {
         header('Content-Type: application/json');
 
         $response = [
@@ -179,7 +195,7 @@ class UserController
         $statusCode = $success ? 200 : 400;
         http_response_code($statusCode);
 
-        echo json_encode($response);
+        echo json_encode($response, JSON_THROW_ON_ERROR);
         exit;
     }
 }

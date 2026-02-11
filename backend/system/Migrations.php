@@ -1,7 +1,10 @@
 <?php
 namespace system;
 
+use Exception;
 use PDO;
+
+// add return types for all methods
 
 class Migrations
 {
@@ -23,10 +26,12 @@ class Migrations
 
     public function getExecutedMigrations()
     {
-        $stmt = $this->db->query("SELECT migration FROM migrations");
-        return $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        return $this->db->query("SELECT migration FROM migrations")->fetchAll(\PDO::FETCH_COLUMN);
     }
 
+    /**
+     * @throws Exception
+     */
     public function migrate()
     {
         $this->createMigrationsTable();
@@ -71,7 +76,7 @@ class Migrations
         $className = $this->getClassNameFromFile($migrationFile);
 
         if (!class_exists($className)) {
-            throw new \Exception("Class {$className} not found in {$migrationFile}");
+            throw new Exception("Class {$className} not found in {$migrationFile}");
         }
 
         $migration = new $className($this->db);
@@ -83,7 +88,8 @@ class Migrations
 
             $migrationName = basename($migrationFile, '.php');
 
-            if ($direction === 'up') {
+            if ($direction === 'up') // extract magic string "up" to a constant
+            {
                 $this->recordMigration($migrationName);
             } else {
                 $this->removeMigration($migrationName);
@@ -92,7 +98,7 @@ class Migrations
             $this->db->commit();
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->db->rollBack();
             throw $e;
         }
@@ -112,13 +118,13 @@ class Migrations
     private function recordMigration($migrationName)
     {
         $stmt = $this->db->prepare("INSERT INTO migrations (migration) VALUES (?)");
-        $stmt->execute([$migrationName]);
+        $stmt->execute([$migrationName]); // add try catch
     }
 
     private function removeMigration($migrationName)
     {
         $stmt = $this->db->prepare("DELETE FROM migrations WHERE migration = ?");
-        $stmt->execute([$migrationName]);
+        $stmt->execute([$migrationName]); // add try catch
     }
 
     private function getClassNameFromFile($filename)
@@ -127,8 +133,6 @@ class Migrations
         $name = preg_replace('/^m\d+_/', '', $name);
         $name = str_replace('_', ' ', $name);
         $name = ucwords($name);
-        $name = str_replace(' ', '', $name);
-
-        return $name;
+        return str_replace(' ', '', $name); // I changed to use inline varible, you also do like this
     }
 }

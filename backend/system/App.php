@@ -10,7 +10,8 @@ class App
         $this->routes = $routes;
     }
 
-    public function run() {
+    public function run() //return type
+    {
         $method = $_SERVER['REQUEST_METHOD'];
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         foreach ($this->routes[$method] ?? [] as $route => $handler) {
@@ -25,10 +26,10 @@ class App
 
         http_response_code(404);
         echo "404 Not Found";
-    }
+    } // add return
 
     private function callHandler($handler, $params = []) {
-        $controllerClass = $handler[0];
+        $controllerClass = $handler[0]; // check maybe we can use here list function
         $action = $handler[1];
 
         $controllerInstance = new $controllerClass();

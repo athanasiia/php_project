@@ -101,8 +101,7 @@ class DatabaseConnection
         $sql = "DELETE FROM users WHERE id = :id";
 
         try {
-            $stmt = $this->connect()->prepare($sql);
-            return $stmt->execute([':id' => $id]);
+            return $this->connect()->prepare($sql)->execute([':id' => $id]);
         } catch (PDOException $e) {
             throw new \Exception("Failed to delete user: " . $e->getMessage());
         }
@@ -128,6 +127,8 @@ class DatabaseConnection
         $sql = "SELECT * FROM users WHERE 1=1";
         $params = [];
 
+        // try to organize next filters: status, gender, search in separate method with match() which you can use
+
         if (!empty($filters['status'])) {
             $sql .= " AND status = :status";
             $params[':status'] = $filters['status'];
@@ -143,11 +144,13 @@ class DatabaseConnection
             $params[':search'] = '%' . $filters['search'] . '%';
         }
 
+        //try to organize next $orderBy also in separate method
+
         $orderBy = 'id';
         if (!empty($filters['sort'])) {
             $allowedSortFields = ['id', 'name', 'email', 'created_at', 'status'];
             $field = $filters['sort'];
-            $orderBy = in_array($field, $allowedSortFields) ? $field : 'id';
+            $orderBy = in_array($field, $allowedSortFields, true) ? $field : 'id';
         }
 
         $orderDirection = 'ASC';
