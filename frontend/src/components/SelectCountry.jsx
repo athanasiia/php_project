@@ -1,5 +1,3 @@
-import React from "react";
-
 function SelectCountry ({ value, onChange }) {
     return (
         <select name="country" value={value} onChange={onChange} required>

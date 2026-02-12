@@ -4,6 +4,7 @@ import SelectCountry from "../components/SelectCountry.jsx";
 import {userFormErrors} from "../validation.js";
 import {useNavigate} from "react-router-dom";
 import {userService} from "../services/userService.js";
+import ResultModal from "../components/ResultModal.jsx";
 
 function UserFormPage() {
     const [formData, setFormData] = useState({
@@ -52,10 +53,7 @@ function UserFormPage() {
             const result = await userService.createUser(formData);
 
             setResultMessage('User created successfully!');
-            setResultData({
-                id: result.id,
-                ...formData
-            });
+            setResultData(result);
             setShowResultModal(true);
         } catch (error) {
             setResultMessage(error.message || 'Error creating user.');
@@ -134,21 +132,12 @@ function UserFormPage() {
                 <button type="submit" disabled={isSubmitting}>Submit</button>
             </form>
 
-            {showResultModal && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal}>
-                        <div className={styles.modalContent}>
-                            <h3>{resultData ? 'Success!' : 'Error'}</h3>
-                            <p>{resultMessage}</p>
-
-                            <button
-                                className={styles.modalButton}
-                                onClick={handleGoToHome}
-                            >Return to home page</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ResultModal
+                show={showResultModal}
+                resultData={resultData}
+                resultMessage={resultMessage}
+                onClose={handleGoToHome}
+            />
         </div>
     );
 }

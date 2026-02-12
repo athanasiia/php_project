@@ -4,10 +4,17 @@ import {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import {userService} from "../services/userService.js";
 
+import ResultModal from "../components/ResultModal.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
+
 function UsersPage() {
     const [users, setUsers] = useState([]);
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showResultModal, setShowResultModal] = useState(false);
+    const [resultMessage, setResultMessage] = useState('');
+    const [resultData, setResultData] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
 
     const [sortField, setSortField] = useState('id');
@@ -72,23 +79,34 @@ function UsersPage() {
         setSelectedIds(newSelected);
     };
 
+    const handleGoToHome = () => {
+        navigate('/');
+    };
+
     const handleDeleteSelected = async () => {
         if (selectedIds.size === 0) return;
 
+        setIsSubmitting(true);
         try {
             const idsToDelete = Array.from(selectedIds);
 
-            await userService.deleteUsers(idsToDelete);
+            const result = await userService.deleteUsers(idsToDelete);
+
+            setResultMessage('Deleted successfully!');
+            setResultData(result);
 
             setUsers(prevUsers =>
                 prevUsers.filter(user => !selectedIds.has(user.id))
             );
             setSelectedIds(new Set());
             setShowConfirmModal(false);
+            setShowResultModal(true);
 
         } catch (error) {
             console.error('Error deleting users:', error);
             alert('Failed to delete users');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -212,33 +230,21 @@ function UsersPage() {
                 </tbody>
             </table>
 
-            {showConfirmModal && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal}>
-                        <div className={styles.modalContent}>
-                            <h3>Confirm Deletion</h3>
-                            <p>
-                                Are you sure you want to delete {selectedIds.size}
-                                {selectedIds.size === 1 ? ' user' : ' users'}?
-                            </p>
-                            <div className={styles.modalActions}>
-                                <button
-                                    className={styles.modalButton}
-                                    onClick={() => setShowConfirmModal(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    className={styles.modalButton}
-                                    onClick={handleDeleteSelected}
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmModal
+                show={showConfirmModal}
+                confirmationMessage={`Are you sure you want to delete ${selectedIds.size} ${selectedIds.size === 1 ? 'user' : 'users'}?`}
+                action="Delete"
+                onCancel={() => setShowConfirmModal(false)}
+                onConfirm={handleDeleteSelected}
+                isSubmitting={isSubmitting}
+            />
+
+            <ResultModal
+                show={showResultModal}
+                resultData={resultData}
+                resultMessage={resultMessage}
+                onClose={handleGoToHome}
+            />
         </div>
     );
 }

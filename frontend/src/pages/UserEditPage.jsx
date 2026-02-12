@@ -4,6 +4,7 @@ import {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import SelectCountry from "../components/SelectCountry.jsx";
 import {userFormErrors} from "../validation.js";
+import ResultModal from "../components/ResultModal.jsx";
 
 function UserEditPage() {
     const { id } = useParams();
@@ -67,10 +68,7 @@ function UserEditPage() {
             const result = userService.updateUser(id, formData);
 
             setResultMessage('User updated successfully!');
-            setResultData({
-                id: result.id,
-                ...formData
-            });
+            setResultData(result);
             setShowResultModal(true);
         } catch (error) {
             setResultMessage(error.message || 'Error updating user.');
@@ -152,21 +150,12 @@ function UserEditPage() {
                 <button type="submit" disabled={isSubmitting}>Edit</button>
             </form>
 
-            {showResultModal && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal}>
-                        <div className={styles.modalContent}>
-                            <h3>{resultData ? 'Success!' : 'Error'}</h3>
-                            <p>{resultMessage}</p>
-
-                            <button
-                                className={styles.modalButton}
-                                onClick={handleGoToHome}
-                            >Return to home page</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ResultModal
+                show={showResultModal}
+                resultData={resultData}
+                resultMessage={resultMessage}
+                onClose={handleGoToHome}
+            />
         </div>
     );
 }
