@@ -24,7 +24,7 @@ function UsersPage() {
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        loadUsers();
+        void loadUsers();
     }, [filterStatus, filterGender, searchTerm, sortField, sortOrder]);
 
     const loadUsers = async () => {
@@ -42,6 +42,7 @@ function UsersPage() {
             );
 
             const fetchedUsers = await userService.getAllUsers(filters);
+
             setUsers(fetchedUsers);
             setSelectedIds(new Set());
 

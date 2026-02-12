@@ -1,10 +1,11 @@
-import styles from '../styles/UserForm.module.css';
+import {userFormErrors} from "../validation.js";
 import {userService} from "../services/userService.js";
+
 import {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
-import SelectCountry from "../components/SelectCountry.jsx";
-import {userFormErrors} from "../validation.js";
+
 import ResultModal from "../components/ResultModal.jsx";
+import UserForm from "../components/UserForm.jsx";
 
 function UserEditPage() {
     const { id } = useParams();
@@ -24,7 +25,7 @@ function UserEditPage() {
     }
 
     useEffect(() => {
-        loadUserData();
+        void loadUserData();
     }, [id]);
 
     const loadUserData = async () => {
@@ -84,71 +85,15 @@ function UserEditPage() {
 
     return (
         <div>
-            <form onSubmit={handleSubmit} className={styles.userForm}>
-                <h2>Edit User</h2>
-
-                {errors && <div>{errors}</div>}
-                <div>
-                    <label>Email</label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder={formData.email}
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label>Your first and last name</label>
-                    <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder={formData.name}
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label>Country of residence</label>
-                    <SelectCountry value={formData.country} onChange={handleChange} />
-                </div>
-
-                <div>
-                    <label>City</label>
-                    <input
-                        type="text"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        placeholder={formData.city}
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label>Gender</label>
-                    <select name="gender" value={formData.gender} onChange={handleChange} required>
-                        <option value="">Select gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label>Status</label>
-                    <select name="status" value={formData.status} onChange={handleChange} required>
-                        <option value="">Select status</option>
-                        <option value="active">Active user</option>
-                        <option value="inactive">Inactive user</option>
-                    </select>
-                </div>
-
-                <button type="submit" disabled={isSubmitting}>Edit</button>
-            </form>
+            <UserForm
+                title="Edit User"
+                errors={errors}
+                submitButtonText="Edit"
+                formData={formData}
+                handleSubmit={handleSubmit}
+                handleChange={handleChange}
+                isSubmitting={isSubmitting}
+            />
 
             <ResultModal
                 show={showResultModal}
