@@ -1,10 +1,11 @@
 .userForm {
-    background-color: #e0dcdc;
+    background-color: #eee;
     display: flex;
     flex-direction: column;
     gap: 10px;
     padding: 60px;
     border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .userForm > div {
@@ -16,7 +17,16 @@
 }
 
 .userForm > div > input, .userForm > div > select {
+    background-color: white;
     width: 100%;
+    padding: 5px;
+    border: none;
     border-radius: 5px;
     font: inherit;
+}
+
+.submitButton {
+    background-color: #9873e1;
+    color: white;
+    margin-top: 10px;
 }

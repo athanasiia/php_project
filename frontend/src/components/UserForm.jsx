@@ -66,7 +66,7 @@ function UserForm({title, errors, submitButtonText, formData, handleSubmit, hand
                 </select>
             </div>
 
-            <button type="submit" disabled={isSubmitting}>{submitButtonText}</button>
+            <button className={styles.submitButton} type="submit" disabled={isSubmitting}>{submitButtonText}</button>
         </form>
     );
 }
