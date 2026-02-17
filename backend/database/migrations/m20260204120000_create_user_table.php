@@ -1,18 +1,24 @@
 <?php
 
-//add
-
-// TODO: add PHPDoc comment for class - describe what this migration does
+/**
+ * Creates table "users" or removes it from the database
+ */
 class CreateUserTable
 {
-    private $db; // TODO: add type hint - specify type (e.g., PDO, mysqli, or custom DatabaseConnection type)
+    private const string TABLE_NAME = 'users';
+    private PDO $db;
 
-    public function __construct($db) // TODO: add type hint for parameter - specify database connection type
+    public function __construct(PDO $db)
     {
         $this->db = $db;
     }
 
-    // TODO: add PHPDoc comment - @return void, describe what this method does
+    /**
+     * Creates table "users" in the database
+     *
+     * @return void
+     * @throws Exception
+     */
     public function up(): void
     {
         $sql = "CREATE TABLE IF NOT EXISTS users (
@@ -25,13 +31,33 @@ class CreateUserTable
             status ENUM('active', 'inactive') NOT NULL DEFAULT 'active'
         ) ENGINE=InnoDB;";
 
-        $this->db->query($sql); // TODO: add error handling - wrap in try-catch, check query result, throw exception on failure 
+        try {
+            $result = $this->db->query($sql);
+            if ($result === false) {
+                throw new Exception('Database query failed');
+            }
+        } catch (PDOException $e) {
+            throw new Exception('Failed to create table "users": ' . $e->getMessage());
+        }
     }
 
-    // TODO: add PHPDoc comment - @return void, describe what this method does
+    /**
+     * Removes table "users" from the database
+     *
+     * @return void
+     * @throws Exception
+     */
     public function down(): void
     {
-        $sql = "DROP TABLE IF EXISTS users"; // TODO: extract table name to constant - define TABLE_NAME constant for reusability
-        $this->db->query($sql); // TODO: add error handling - wrap in try-catch, check query result, throw exception on failure
+        $sql = "DROP TABLE IF EXISTS " . self::TABLE_NAME;
+
+        try {
+            $result = $this->db->query($sql);
+            if ($result === false) {
+                throw new Exception('Database query failed');
+            }
+        } catch (PDOException $e) {
+            throw new Exception('Failed to remove table "' . self::TABLE_NAME . '": ' . $e->getMessage());
+        }
     }
 }

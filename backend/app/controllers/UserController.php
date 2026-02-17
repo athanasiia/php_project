@@ -3,22 +3,25 @@ namespace app\controllers;
 
 use database\DatabaseConnection;
 use Exception;
+use JsonException;
 
 class UserController
 {
-    private $db;
+    private DatabaseConnection $db;
 
     public function __construct() {
         $this->db = DatabaseConnection::getInstance();
     }
 
-    public function new() //need add the return type
+    public function new() : void
     {
         require VIEWS_PATH . "/users/new.php";
     }
 
-    public function create()  //need add the return type
-
+    /**
+     * @throws JsonException
+     */
+    public function create() : void
     {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
@@ -26,13 +29,13 @@ class UserController
         $required = ['email', 'name', 'country', 'city', 'gender'];
         foreach ($required as $field) {
             if (empty($data[$field])) {
-                $this->sendJsonResponse(false, "Field '$field' is required", null, 400);
+                $this->sendJsonResponse(false, "Field '$field' is required", null, ['error' => 'Validation failed']);
                 return;
             }
         }
 
         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $this->sendJsonResponse(false, "Invalid email format", null, 400);
+            $this->sendJsonResponse(false, "Invalid email format", null, ['error' => 'Validation failed']);
             return;
         }
 
@@ -54,16 +57,19 @@ class UserController
             ]);
 
         } catch (Exception $e) {
-            $this->sendJsonResponse(false, 'Error creating user: ' . $e->getMessage(), null, 500);
+            $this->sendJsonResponse(false, "Error creating user", null, ['error' => $e->getMessage()]);
         }
     }
 
-    public function index() //need add the return type
+    public function index() : void
     {
         require VIEWS_PATH . "/users/new.php";
     }
 
-    public function show($id)  //need add the return type and type of argument
+    /**
+     * @throws JsonException
+     */
+    public function show(int $id) : void
     {
         try {
             $user = $this->db->getUser($id);
@@ -73,12 +79,15 @@ class UserController
         }
     }
 
-    public function edit() //need add the return type
+    public function edit() : void
     {
         require VIEWS_PATH . "/users/new.php";
     }
 
-    public function update($id) //need add the return type and type of argument
+    /**
+     * @throws JsonException
+     */
+    public function update(int $id) : void
     {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
@@ -86,13 +95,13 @@ class UserController
         $required = ['email', 'name', 'country', 'city', 'gender'];
         foreach ($required as $field) {
             if (empty($data[$field])) {
-                $this->sendJsonResponse(false, "Field '$field' is required", null, 400);
+                $this->sendJsonResponse(false, "Field '$field' is required", null, ['error' => 'Validation failed']);
                 return;
             }
         }
 
         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $this->sendJsonResponse(false, "Invalid email format", null, 400);
+            $this->sendJsonResponse(false, "Invalid email format", null, ['error' => 'Validation failed']);
             return;
         }
 
@@ -104,7 +113,10 @@ class UserController
         }
     }
 
-    public function delete($id) //need add the return type and type of argument
+    /**
+     * @throws JsonException
+     */
+    public function delete(int $id) : void
 
     {
         try {
@@ -132,7 +144,7 @@ class UserController
         }
     }
 
-    public function apiGetAllUsers() //need add the return type
+    public function apiGetAllUsers() : void
 
     {
         header('Content-Type: application/json; charset=utf-8');
@@ -172,16 +184,15 @@ class UserController
     }
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
      */
-    private function sendJsonResponse($success, $message, $data = null, $errors = null)  //need add the return type and type of argument
-
+    private function sendJsonResponse(bool $success, string $message, ?array $data = null, ?array $errors = null) : void
     {
         header('Content-Type: application/json');
 
         $response = [
-            'success' => (bool)$success,
-            'message' => (string)$message,
+            'success' => $success,
+            'message' => $message,
         ];
 
         if ($data !== null) {
@@ -196,6 +207,5 @@ class UserController
         http_response_code($statusCode);
 
         echo json_encode($response, JSON_THROW_ON_ERROR);
-        exit;
     }
 }

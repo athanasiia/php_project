@@ -3,11 +3,12 @@ namespace system;
 
 use Exception;
 use PDO;
-
-// add return types for all methods
+use PDOException;
 
 class Migrations
 {
+    private const string MIGRATION_DIRECTION_UP = "up";
+    private const string MIGRATION_DIRECTION_DOWN = "down";
     private PDO $db;
     private string $migrationsPath;
 
@@ -17,22 +18,22 @@ class Migrations
         $this->migrationsPath = $migrationsPath;
     }
 
-    public function getAllMigrations()
+    public function getAllMigrations(): false|array
     {
         $files = glob($this->migrationsPath . '/m*.php');
         sort($files);
         return $files;
     }
 
-    public function getExecutedMigrations()
+    public function getExecutedMigrations(): array
     {
-        return $this->db->query("SELECT migration FROM migrations")->fetchAll(\PDO::FETCH_COLUMN);
+        return $this->db->query("SELECT migration FROM migrations")->fetchAll(PDO::FETCH_COLUMN);
     }
 
     /**
      * @throws Exception
      */
-    public function migrate()
+    public function migrate(): array
     {
         $this->createMigrationsTable();
 
@@ -44,14 +45,14 @@ class Migrations
             $migrationName = basename($migrationFile, '.php');
 
             if (!in_array($migrationName, $executedMigrations)) {
-                $results[$migrationName] = $this->runMigration($migrationFile, 'up');
+                $results[$migrationName] = $this->runMigration($migrationFile, self::MIGRATION_DIRECTION_UP);
             }
         }
 
         return $results;
     }
 
-    public function rollback()
+    public function rollback(): bool
     {
         $executedMigrations = $this->getExecutedMigrations();
 
@@ -63,39 +64,38 @@ class Migrations
         $migrationFile = $this->migrationsPath . '/' . $lastMigration . '.php';
 
         if (file_exists($migrationFile)) {
-            return $this->runMigration($migrationFile, 'down');
+            return $this->runMigration($migrationFile, self::MIGRATION_DIRECTION_DOWN);
         }
 
         return false;
     }
 
-    private function runMigration($migrationFile, $direction)
+    /**
+     * @throws Exception
+     */
+    public function runMigration($migrationFile, $direction): bool
     {
         require_once $migrationFile;
 
         $className = $this->getClassNameFromFile($migrationFile);
 
         if (!class_exists($className)) {
-            throw new Exception("Class {$className} not found in {$migrationFile}");
+            throw new Exception("Class $className not found in $migrationFile");
         }
 
         $migration = new $className($this->db);
 
         try {
-            $this->db->beginTransaction();
-
             $migration->$direction();
 
             $migrationName = basename($migrationFile, '.php');
 
-            if ($direction === 'up') // extract magic string "up" to a constant
+            if ($direction === self::MIGRATION_DIRECTION_UP)
             {
                 $this->recordMigration($migrationName);
             } else {
                 $this->removeMigration($migrationName);
             }
-
-            $this->db->commit();
 
             return true;
         } catch (Exception $e) {
@@ -104,7 +104,10 @@ class Migrations
         }
     }
 
-    private function createMigrationsTable()
+    /**
+     * @throws Exception
+     */
+    private function createMigrationsTable(): void
     {
         $sql = "CREATE TABLE IF NOT EXISTS migrations (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -112,27 +115,57 @@ class Migrations
             executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )";
 
-        $this->db->exec($sql);
+        try {
+            $result = $this->db->exec($sql);
+            if ($result === false) {
+                throw new Exception('Database query failed');
+            }
+        } catch (PDOException $e) {
+            throw new Exception('Failed to create table "migrations": ' . $e->getMessage());
+        }
     }
 
-    private function recordMigration($migrationName)
+    /**
+     * @throws Exception
+     */
+    private function recordMigration(string $migrationName): void
     {
         $stmt = $this->db->prepare("INSERT INTO migrations (migration) VALUES (?)");
-        $stmt->execute([$migrationName]); // add try catch
+
+        try {
+            $result = $stmt->execute([$migrationName]);;
+            if ($result === false) {
+                throw new Exception('Database query failed');
+            }
+        } catch (PDOException $e) {
+            throw new Exception('Failed to insert migration: ' . $e->getMessage());
+        }
     }
 
-    private function removeMigration($migrationName)
+    /**
+     * @throws Exception
+     */
+    private function removeMigration(string $migrationName): void
     {
         $stmt = $this->db->prepare("DELETE FROM migrations WHERE migration = ?");
-        $stmt->execute([$migrationName]); // add try catch
+
+        try {
+            $result = $stmt->execute([$migrationName]);;
+            if ($result === false) {
+                throw new Exception('Database query failed');
+            }
+        } catch (PDOException $e) {
+            throw new Exception('Failed to remove migration: ' . $e->getMessage());
+        }
+        $stmt->execute([$migrationName]);
     }
 
-    private function getClassNameFromFile($filename)
+    private function getClassNameFromFile(string $filename): array|string
     {
         $name = basename($filename, '.php');
         $name = preg_replace('/^m\d+_/', '', $name);
         $name = str_replace('_', ' ', $name);
         $name = ucwords($name);
-        return str_replace(' ', '', $name); // I changed to use inline varible, you also do like this
+        return str_replace(' ', '', $name);
     }
 }

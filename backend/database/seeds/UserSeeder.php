@@ -4,28 +4,42 @@ use database\seeds\UserFactory;
 
 class UserSeeder
 {
-    private $db;
+    private PDO $db;
 
     public function __construct($db)
     {
         $this->db = $db;
     }
 
-    public function run() //return type
+    public function run(): bool
     {
         for ($i = 1; $i <= 5; $i++) {
             $user = UserFactory::create();
-            $this->insertUser($user);
+            $result = $this->insertUser($user);
         }
+
+        return $result;
     }
 
-    private function insertUser($user) // return type
+    /**
+     * @throws Exception
+     */
+    private function insertUser($user): bool
     {
         $stmt = $this->db->prepare("
             INSERT INTO users (email, name, country, city, gender, status) 
             VALUES (:email, :name, :country, :city, :gender, :status)
         ");
 
-        $stmt->execute($user); // add try catch
+        try {
+            $result = $stmt->execute($user);
+            if ($result === false) {
+                throw new Exception('Database query failed');
+            }
+
+            return true;
+        } catch (PDOException $e) {
+            throw new Exception('Failed to insert data: ' . $e->getMessage());
+        }
     }
 }

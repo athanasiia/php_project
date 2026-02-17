@@ -1,13 +1,14 @@
 <?php
 namespace database\seeds;
 
+use Random\RandomException;
 
 class UserFactory
 {
     /**
      * @throws RandomException
      */
-    public static function create() //return types
+    public static function create(): array
     {
         $countries = ['US', 'CA', 'UK', 'DE', 'FR', 'JP'];
 
@@ -20,7 +21,7 @@ class UserFactory
             'JP' => ['Tokyo', 'Osaka', 'Kyoto']
         ];
 
-        $random_value = random_int(0,10000); // try to use random_int on other places
+        $random_value = random_int(0,10000);
 
         $defaults = [
             'email' => "test$random_value@example.com",
@@ -30,7 +31,7 @@ class UserFactory
             'status' => rand(0, 1) ? 'active' : 'inactive',
         ];
 
-        $defaults['city'] = $cities[$defaults['country']][rand(0, 2)];
+        $defaults['city'] = $cities[$defaults['country']][random_int(0, 2)];
 
         return $defaults;
     }

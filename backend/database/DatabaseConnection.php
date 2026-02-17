@@ -2,6 +2,7 @@
 
 namespace database;
 
+use Exception;
 use PDO;
 use PDOException;
 
@@ -30,6 +31,9 @@ class DatabaseConnection
         return self::$instance;
     }
 
+    /**
+     * @throws Exception
+     */
     public function connect(): PDO
     {
         if ($this->connection === null) {
@@ -43,13 +47,16 @@ class DatabaseConnection
 
                 $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             } catch (PDOException $e) {
-                throw new \Exception("Database connection failed: " . $e->getMessage());
+                throw new Exception("Database connection failed: " . $e->getMessage());
             }
         }
 
         return $this->connection;
     }
 
+    /**
+     * @throws Exception
+     */
     public function createUser(array $data): ?int
     {
         $sql = "INSERT INTO users (email, name, country, city, gender, status) 
@@ -68,10 +75,13 @@ class DatabaseConnection
 
             return (int)$this->connect()->lastInsertId();
         } catch (PDOException $e) {
-            throw new \Exception("Failed to create user: " . $e->getMessage());
+            throw new Exception("Failed to create user: " . $e->getMessage());
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function updateUser(int $id, array $data): bool
     {
         $setParts = [];
@@ -92,10 +102,13 @@ class DatabaseConnection
             $stmt = $this->connect()->prepare($sql);
             return $stmt->execute($params);
         } catch (PDOException $e) {
-            throw new \Exception("Failed to update user: " . $e->getMessage());
+            throw new Exception("Failed to update user: " . $e->getMessage());
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function deleteUser(int $id): bool
     {
         $sql = "DELETE FROM users WHERE id = :id";
@@ -103,10 +116,13 @@ class DatabaseConnection
         try {
             return $this->connect()->prepare($sql)->execute([':id' => $id]);
         } catch (PDOException $e) {
-            throw new \Exception("Failed to delete user: " . $e->getMessage());
+            throw new Exception("Failed to delete user: " . $e->getMessage());
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function getUser(int $id): ?array
     {
         $sql = "SELECT * FROM users WHERE id = :id LIMIT 1";
@@ -118,47 +134,20 @@ class DatabaseConnection
 
             return $result ?: null;
         } catch (PDOException $e) {
-            throw new \Exception("Failed to get user: " . $e->getMessage());
+            throw new Exception("Failed to get user: " . $e->getMessage());
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function getAllUsers(array $filters = []): array
     {
         $sql = "SELECT * FROM users WHERE 1=1";
         $params = [];
 
-        // try to organize next filters: status, gender, search in separate method with match() which you can use
-
-        if (!empty($filters['status'])) {
-            $sql .= " AND status = :status";
-            $params[':status'] = $filters['status'];
-        }
-
-        if (!empty($filters['gender'])) {
-            $sql .= " AND gender = :gender";
-            $params[':gender'] = $filters['gender'];
-        }
-
-        if (!empty($filters['search'])) {
-            $sql .= " AND name LIKE :search";
-            $params[':search'] = '%' . $filters['search'] . '%';
-        }
-
-        //try to organize next $orderBy also in separate method
-
-        $orderBy = 'id';
-        if (!empty($filters['sort'])) {
-            $allowedSortFields = ['id', 'name', 'email', 'created_at', 'status'];
-            $field = $filters['sort'];
-            $orderBy = in_array($field, $allowedSortFields, true) ? $field : 'id';
-        }
-
-        $orderDirection = 'ASC';
-        if (!empty($filters['order']) && strtoupper($filters['order']) === 'DESC') {
-            $orderDirection = 'DESC';
-        }
-
-        $sql .= " ORDER BY $orderBy $orderDirection";
+        $this->applyFilters($filters, $sql, $params);
+        $this->applySorting($filters, $sql);
 
         try {
             $stmt = $this->connect()->prepare($sql);
@@ -172,7 +161,45 @@ class DatabaseConnection
             return $stmt->fetchAll();
 
         } catch (PDOException $e) {
-            throw new \Exception("Failed to get users: " . $e->getMessage());
+            throw new Exception("Failed to get users: " . $e->getMessage());
         }
     }
+
+    private function applyFilters(array $filters, string &$sql, array &$params): void
+    {
+        $filterMap = [
+            'status' => 'status = :status',
+            'gender' => 'gender = :gender',
+            'search' => 'name LIKE :search'
+        ];
+
+        foreach ($filterMap as $key => $condition) {
+            if (!empty($filters[$key])) {
+                $sql .= " AND $condition";
+                $params[":$key"] = $key === 'search'
+                    ? '%' . $filters[$key] . '%'
+                    : $filters[$key];
+            }
+        }
+    }
+
+    private function applySorting(array $filters, string &$sql): void
+    {
+        $orderBy = $this->getSortField($filters);
+        $orderDirection = $this->getSortDirection($filters);
+        $sql .= " ORDER BY $orderBy $orderDirection";
+    }
+    private function getSortField(array $filters): string
+    {
+        $allowedFields = ['id', 'name', 'email'];
+        $field = $filters['sort'] ?? 'id';
+        return in_array($field, $allowedFields, true) ? $field : 'id';
+    }
+    private function getSortDirection(array $filters): string
+    {
+        return (!empty($filters['order']) && strtoupper($filters['order']) === 'DESC')
+            ? 'DESC'
+            : 'ASC';
+    }
+
 }
