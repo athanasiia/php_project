@@ -15,6 +15,6 @@ return [
         '/api/users/{id}' => ["app\controllers\UserController", "update"],
     ],
     'DELETE' => [
-        '/api/users/{id}' => ["app\controllers\UserController", "delete"],
+        '/api/users/' => ["app\controllers\UserController", "delete"],
     ]
 ];

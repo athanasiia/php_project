@@ -3,7 +3,8 @@ namespace app\controllers;
 
 class AppController
 {
-    public function index() {
+    public function index() : void
+    {
         require VIEWS_PATH . "/users/new.php";
     }
 }

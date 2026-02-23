@@ -2,36 +2,22 @@ export const userService = {
     getAllUsers: async (filters = {}) => {
         try {
             const queryParams = new URLSearchParams();
+            const { status, gender, search, sort, order, limit, offset } = filters;
 
-            if (filters.status && filters.status !== 'all') {
-                queryParams.append('status', filters.status);
-            }
+            if (status && status !== 'all') queryParams.append('status', status);
+            if (gender && gender !== 'all') queryParams.append('gender', gender);
+            if (search) queryParams.append('search', search);
+            if (sort) queryParams.append('sort', sort);
+            if (order) queryParams.append('order', order);
+            if (limit) queryParams.append('limit', limit);
+            if (offset) queryParams.append('offset', offset);
 
-            if (filters.gender && filters.gender !== 'all') {
-                queryParams.append('gender', filters.gender);
-            }
-
-            if (filters.search) {
-                queryParams.append('search', filters.search);
-            }
-
-            if (filters.sort) {
-                queryParams.append('sort', filters.sort);
-            }
-
-            if (filters.order) {
-                queryParams.append('order', filters.order);
-            }
-
-            const queryString = queryParams.toString();
-            const url = queryString ? `/api/users?${queryString}` : '/api/users';
+            const url = queryParams.toString() ? `/api/users?${queryParams}` : '/api/users';
 
             const response = await fetch(url);
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-            const data = await response.json();
-            return data || [];
-
+            return await response.json() || [];
         } catch (error) {
             console.error('Error fetching users:', error);
             throw error;
@@ -105,22 +91,24 @@ export const userService = {
 
     deleteUsers: async (userIds) => {
         try {
-            const deletePromises = userIds.map(id =>
-                fetch(`/api/users/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                }).then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Failed to delete user ${id}`);
-                    }
-                    return response.json();
-                })
-            );
+            const response = await fetch(`/api/users/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ids: userIds })
+            });
 
-            return await Promise.allSettled(deletePromises);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
 
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to delete users');
+            }
+
+            return data.data;
         } catch (error) {
             console.error('Error deleting users:', error);
             throw error;

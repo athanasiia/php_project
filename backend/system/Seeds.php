@@ -1,6 +1,7 @@
 <?php
 namespace system;
 
+use Exception;
 use PDO;
 
 class Seeds
@@ -14,39 +15,89 @@ class Seeds
         $this->seedsPath = $seedsPath;
     }
 
-    public function runAll() // add return types
+    /**
+     * @throws Exception
+     */
+    public function runAll(): void
     {
-        $seedFiles = glob($this->seedsPath . '/*Seeder.php'); // TODO: add error handling - check if glob returns false on error
+        $seedFiles = glob($this->seedsPath . '/*Seeder.php');
+        if ($seedFiles === false) {
+            throw new Exception("Failed to read seeds directory: $this->seedsPath");
+        }
 
         foreach ($seedFiles as $seedFile) {
-            $this->runSeed($seedFile); // TODO: add error handling - wrap in try-catch to continue with other seeds if one fails
+            try {
+                $this->runSeed($seedFile);
+            } catch (Exception $e) {
+                echo "Error in " . basename($seedFile) . ": " . $e->getMessage() . "\n";
+            }
         }
     }
 
-    public function run($seedName)
+    /**
+     * @throws Exception
+     */
+    public function run($seedName): void
     {
-        $seedFile = $this->seedsPath . '/' . $seedName . '.php'; // TODO: use path concatenation helper - use DIRECTORY_SEPARATOR or Path::join() for cross-platform compatibility
+        if (empty($seedName) || !preg_match('/^\w+$/', $seedName)) {
+            throw new Exception("Invalid seed name: $seedName");
+        }
 
-        if (!file_exists($seedFile)) { // TODO: add validation - check if $seedName is not empty and contains only safe characters (prevent directory traversal)
-            throw new \Exception("Seed not found: {$seedName}");
+        $seedFile = $this->joinPath($this->seedsPath, $seedName . '.php');
+
+        if (!file_exists($seedFile)) {
+            throw new Exception("Seed not found: $seedName");
         }
 
         $this->runSeed($seedFile);
     }
 
-    private function runSeed($seedFile)
+    /**
+     * @throws Exception
+     */
+    private function runSeed($seedFile): void
     {
-        require_once $seedFile; // TODO: add error handling - wrap in try-catch to catch parse errors | TODO: consider security - validate file path to prevent directory traversal attacks
-
-        $className = basename($seedFile, '.php'); // TODO: extract to method - create extractClassName() helper method for reusability // Also can use in other places
-
-        if (!class_exists($className)) {
-            throw new \Exception("Class {$className} not found in {$seedFile}");
+        $realPath = realpath($seedFile);
+        if ($realPath === false || !str_starts_with($realPath, realpath($this->seedsPath))) {
+            throw new Exception("Invalid seed file path: $seedFile");
         }
 
-        $seed = new $className($this->db); // TODO: add error handling - wrap in try-catch to catch instantiation errors
-        $seed->run(); // TODO: add error handling - wrap in try-catch to catch execution errors | TODO: verify return value - check if run() returns success status
+        try {
+            require_once $seedFile;
+        } catch (Exception $e) {
+            throw new Exception("Failed to include seed file: " . $e->getMessage());
+        }
 
-        echo "Seed {$className} completed successfully!\n";
+        $className = $this->extractClassName($seedFile);
+
+        if (!class_exists($className)) {
+            throw new Exception("Class $className not found in $seedFile");
+        }
+
+        try {
+            $seed = new $className($this->db);
+        } catch (Exception $e) {
+            throw new Exception("Failed to instantiate $className: " . $e->getMessage());
+        }
+
+        try {
+            $result = $seed->run();
+            if ($result === false) {
+                throw new Exception("Seed execution failed: $seedFile");
+            }
+        } catch (Exception $e) {
+            throw new Exception("Failed to run seed: " . $e->getMessage());
+        }
+
+        echo "Seed $className completed successfully!\n";
+    }
+
+    private function joinPath(string ...$parts): string
+    {
+        return implode(DIRECTORY_SEPARATOR, $parts);
+    }
+
+    private function extractClassName(string $file): string {
+        return basename($file, '.php');
     }
 }

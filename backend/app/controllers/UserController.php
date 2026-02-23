@@ -3,22 +3,25 @@ namespace app\controllers;
 
 use database\DatabaseConnection;
 use Exception;
+use JsonException;
 
 class UserController
 {
-    private $db;
+    private DatabaseConnection $db;
 
     public function __construct() {
         $this->db = DatabaseConnection::getInstance();
     }
 
-    public function new() //need add the return type
+    public function new() : void
     {
         require VIEWS_PATH . "/users/new.php";
     }
 
-    public function create()  //need add the return type
-
+    /**
+     * @throws JsonException
+     */
+    public function create() : void
     {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
@@ -26,13 +29,13 @@ class UserController
         $required = ['email', 'name', 'country', 'city', 'gender'];
         foreach ($required as $field) {
             if (empty($data[$field])) {
-                $this->sendJsonResponse(false, "Field '$field' is required", null, 400);
+                $this->sendJsonResponse(false, "Field '$field' is required", null, ['error' => 'Validation failed']);
                 return;
             }
         }
 
         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $this->sendJsonResponse(false, "Invalid email format", null, 400);
+            $this->sendJsonResponse(false, "Invalid email format", null, ['error' => 'Validation failed']);
             return;
         }
 
@@ -54,16 +57,19 @@ class UserController
             ]);
 
         } catch (Exception $e) {
-            $this->sendJsonResponse(false, 'Error creating user: ' . $e->getMessage(), null, 500);
+            $this->sendJsonResponse(false, "Error creating user", null, ['error' => $e->getMessage()]);
         }
     }
 
-    public function index() //need add the return type
+    public function index() : void
     {
         require VIEWS_PATH . "/users/new.php";
     }
 
-    public function show($id)  //need add the return type and type of argument
+    /**
+     * @throws JsonException
+     */
+    public function show(int $id) : void
     {
         try {
             $user = $this->db->getUser($id);
@@ -73,12 +79,15 @@ class UserController
         }
     }
 
-    public function edit() //need add the return type
+    public function edit() : void
     {
         require VIEWS_PATH . "/users/new.php";
     }
 
-    public function update($id) //need add the return type and type of argument
+    /**
+     * @throws JsonException
+     */
+    public function update(int $id) : void
     {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
@@ -86,13 +95,13 @@ class UserController
         $required = ['email', 'name', 'country', 'city', 'gender'];
         foreach ($required as $field) {
             if (empty($data[$field])) {
-                $this->sendJsonResponse(false, "Field '$field' is required", null, 400);
+                $this->sendJsonResponse(false, "Field '$field' is required", null, ['error' => 'Validation failed']);
                 return;
             }
         }
 
         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $this->sendJsonResponse(false, "Invalid email format", null, 400);
+            $this->sendJsonResponse(false, "Invalid email format", null, ['error' => 'Validation failed']);
             return;
         }
 
@@ -104,27 +113,41 @@ class UserController
         }
     }
 
-    public function delete($id) //need add the return type and type of argument
-
+    /**
+     * @throws JsonException
+     */
+    public function delete() : void
     {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $ids = $data['ids'] ?? [];
+
         try {
-            if (!is_numeric($id) || $id <= 0) {
-                $this->sendJsonResponse(false, 'Invalid user ID', null, ['id' => 'Invalid ID']);
+            if (empty($ids)) {
+                $this->sendJsonResponse(false, 'No user IDs provided', null, ['ids' => 'Empty ID array']);
                 return;
             }
 
-            $user = $this->db->getUser($id);
-            if (!$user) {
-                $this->sendJsonResponse(false, 'User not found', null, ['id' => 'User not found']);
+            $invalidIds = [];
+            foreach ($ids as $id) {
+                if (!is_numeric($id) || $id < 0) {
+                    $invalidIds[] = $id;
+                }
+            }
+
+            if (!empty($invalidIds)) {
+                $this->sendJsonResponse(false, 'Invalid user IDs provided', null, ['ids' => $invalidIds]);
                 return;
             }
 
-            $success = $this->db->deleteUser($id);
+            $deletedCount = $this->db->deleteUsers($ids);
 
-            if ($success) {
-                $this->sendJsonResponse(true, 'User deleted successfully', ['id' => $id]);
+            if ($deletedCount > 0) {
+                $this->sendJsonResponse(true,
+                    "Successfully deleted $deletedCount user(s)",
+                    ['deleted_ids' => $ids]
+                );
             } else {
-                $this->sendJsonResponse(false, 'Failed to delete user', null, ['error' => 'Delete operation failed']);
+                $this->sendJsonResponse(false, 'No users were deleted', null, ['error' => 'Delete operation failed']);
             }
 
         } catch (Exception $e) {
@@ -132,8 +155,10 @@ class UserController
         }
     }
 
-    public function apiGetAllUsers() //need add the return type
-
+    /**
+     * @throws JsonException
+     */
+    public function apiGetAllUsers() : void
     {
         header('Content-Type: application/json; charset=utf-8');
 
@@ -143,6 +168,8 @@ class UserController
             'search' => $_GET['search'] ?? null,
             'sort' => $_GET['sort'] ?? 'id',
             'order' => $_GET['order'] ?? 'ASC',
+            'limit' => $GET['limit'] ?? null,
+            'offset' => $_GET['offset'] ?? null,
         ];
 
         try {
@@ -163,25 +190,20 @@ class UserController
             echo json_encode($processedUsers);
 
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
-                'error' => true,
-                'message' => $e->getMessage()
-            ]);
+            $this->sendJsonResponse(false, 'Could not get users', null, ['error' => $e->getMessage()]);
         }
     }
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
      */
-    private function sendJsonResponse($success, $message, $data = null, $errors = null)  //need add the return type and type of argument
-
+    private function sendJsonResponse(bool $success, string $message, ?array $data = null, ?array $errors = null) : void
     {
         header('Content-Type: application/json');
 
         $response = [
-            'success' => (bool)$success,
-            'message' => (string)$message,
+            'success' => $success,
+            'message' => $message,
         ];
 
         if ($data !== null) {
@@ -196,6 +218,5 @@ class UserController
         http_response_code($statusCode);
 
         echo json_encode($response, JSON_THROW_ON_ERROR);
-        exit;
     }
 }

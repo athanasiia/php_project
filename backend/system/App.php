@@ -5,12 +5,12 @@ namespace system;
 class App
 {
     private $routes;
-    public function setRoutes($routes)
+    public function setRoutes($routes): void
     {
         $this->routes = $routes;
     }
 
-    public function run() //return type
+    public function run(): mixed
     {
         $method = $_SERVER['REQUEST_METHOD'];
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -26,11 +26,11 @@ class App
 
         http_response_code(404);
         echo "404 Not Found";
-    } // add return
+        return null;
+    }
 
     private function callHandler($handler, $params = []) {
-        $controllerClass = $handler[0]; // check maybe we can use here list function
-        $action = $handler[1];
+        [$controllerClass, $action] = $handler;
 
         $controllerInstance = new $controllerClass();
         return call_user_func_array([$controllerInstance, $action], $params);
