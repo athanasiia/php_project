@@ -11,14 +11,6 @@ class DatabaseConnection
     private static ?self $instance = null;
     private ?PDO $connection = null;
 
-    private array $config = [
-        'host' => 'localhost',
-        'database' => 'users_db',
-        'username' => 'root',
-        'password' => 'password',
-        'charset' => 'utf8mb4'
-    ];
-
     private function __construct() {}
 
     private function __clone() {}
@@ -38,11 +30,11 @@ class DatabaseConnection
     {
         if ($this->connection === null) {
             try {
-                $dsn = "mysql:host={$this->config['host']};dbname={$this->config['database']};charset={$this->config['charset']}";
+                $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
                 $this->connection = new PDO(
                     $dsn,
-                    $this->config['username'],
-                    $this->config['password'],
+                    DB_USER,
+                    DB_PASS,
                 );
 
                 $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

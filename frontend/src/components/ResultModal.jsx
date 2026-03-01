@@ -14,7 +14,7 @@ function ResultModal ({show, resultData, resultMessage, onClose}) {
                         className={styles.modalButton}
                         onClick={onClose}
                     >
-                        Return to home page
+                        Close
                     </button>
                 </div>
             </div>

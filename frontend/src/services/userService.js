@@ -1,5 +1,7 @@
+import {GOREST_VALUE} from "../constants/constants.js";
+
 export const userService = {
-    getAllUsers: async (filters = {}) => {
+    getAllUsers: async (filters = {}, selectedSource) => {
         try {
             const queryParams = new URLSearchParams();
             const { status, gender, search, sort, order, limit, offset } = filters;
@@ -12,7 +14,12 @@ export const userService = {
             if (limit) queryParams.append('limit', limit);
             if (offset) queryParams.append('offset', offset);
 
-            const url = queryParams.toString() ? `/api/users?${queryParams}` : '/api/users';
+            let url;
+            if (selectedSource === GOREST_VALUE) {
+                url = queryParams.toString() ? `/api/users?${queryParams}` : '/api/users';
+            } else {
+                url = queryParams.toString() ? `/users?${queryParams}` : '/users';
+            }
 
             const response = await fetch(url);
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -24,9 +31,11 @@ export const userService = {
         }
     },
 
-    getUserById: async (id) => {
+    getUserById: async (id, selectedSource) => {
+        const url = selectedSource === GOREST_VALUE ? `/api/users/${id}` : `/users/${id}`;
+
         try {
-            const response = await fetch(`/api/users/${id}`);
+            const response = await fetch(url);
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const data = await response.json();
             return data.data || data;
@@ -36,9 +45,10 @@ export const userService = {
         }
     },
 
-    createUser: async (userData) => {
+    createUser: async (userData, selectedSource) => {
+        const url = selectedSource === GOREST_VALUE ? '/api/users/create' : '/users/create';
         try {
-            const response = await fetch('/api/users/create', {
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -64,9 +74,11 @@ export const userService = {
         }
     },
 
-    updateUser: async (id, userData) => {
+    updateUser: async (id, userData, selectedSource) => {
+        const url = selectedSource === GOREST_VALUE ? `/api/users/${id}` : `/users/${id}`;
+
         try {
-            const response = await fetch(`/api/users/${id}`, {
+            const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -89,9 +101,11 @@ export const userService = {
         }
     },
 
-    deleteUsers: async (userIds) => {
+    deleteUsers: async (userIds, selectedSource) => {
+        const url = selectedSource === GOREST_VALUE ? `/api/users` : `/users`;
+
         try {
-            const response = await fetch(`/api/users/`, {
+            const response = await fetch(url, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

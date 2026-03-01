@@ -1,4 +1,4 @@
-import {userFormErrors} from "../validation.js";
+import {userApiFormErrors, userFormErrors} from "../validation.js";
 import {userService} from "../services/userService.js";
 
 import {useEffect, useState} from "react";
@@ -6,8 +6,9 @@ import {useNavigate, useParams} from "react-router-dom";
 
 import ResultModal from "../components/ResultModal.jsx";
 import UserForm from "../components/UserForm.jsx";
+import {DB_VALUE} from "../constants/constants.js";
 
-function UserEditPage() {
+function UserEditPage({selectedSource}) {
     const { id } = useParams();
     const [formData, setFormData] = useState(null);
 
@@ -19,7 +20,7 @@ function UserEditPage() {
     const navigate = useNavigate();
 
     const validate = () => {
-        const error = userFormErrors(formData);
+        const error = selectedSource === DB_VALUE ? userFormErrors(formData) : userApiFormErrors(formData);
         setErrors(error);
         return !error;
     }
@@ -30,7 +31,7 @@ function UserEditPage() {
 
     const loadUserData = async () => {
         try {
-            const user = await userService.getUserById(id);
+            const user = await userService.getUserById(id, selectedSource);
             setFormData({
                 email: user.email,
                 name: user.name,
@@ -66,7 +67,7 @@ function UserEditPage() {
         setIsSubmitting(true);
 
         try {
-            const result = userService.updateUser(id, formData);
+            const result = userService.updateUser(id, formData, selectedSource);
 
             setResultMessage('User updated successfully!');
             setResultData(result);
@@ -93,6 +94,7 @@ function UserEditPage() {
                 handleSubmit={handleSubmit}
                 handleChange={handleChange}
                 isSubmitting={isSubmitting}
+                selectedSource={selectedSource}
             />
 
             <ResultModal

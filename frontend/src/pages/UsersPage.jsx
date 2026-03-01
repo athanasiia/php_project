@@ -1,13 +1,16 @@
 import styles from '../styles/UsersPage.module.css';
 
 import {useState, useEffect} from 'react';
-import { useNavigate } from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {userService} from "../services/userService.js";
 
 import ResultModal from "../components/ResultModal.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
+import {DB_VALUE, GOREST_VALUE} from "../constants/constants.js";
 
 function UsersPage() {
+    const [selectedSource, setSelectedSource] = useState(DB_VALUE);
+
     const ITEMS_PER_PAGE = 5;
     const [users, setUsers] = useState([]);
     const [selectedIds, setSelectedIds] = useState(new Set());
@@ -26,8 +29,12 @@ function UsersPage() {
     const [pageNumber, setPageNumber] = useState(1);
 
     useEffect(() => {
+        setPageNumber(1);
+    }, [filterStatus, filterGender, searchTerm, sortField, sortOrder, resultData, selectedSource]);
+
+    useEffect(() => {
         void loadUsers();
-    }, [filterStatus, filterGender, searchTerm, sortField, sortOrder, pageNumber]);
+    }, [filterStatus, filterGender, searchTerm, sortField, sortOrder, resultData, selectedSource, pageNumber]);
 
     const loadUsers = async () => {
         try {
@@ -45,11 +52,10 @@ function UsersPage() {
                 filters[key] === undefined && delete filters[key]
             );
 
-            const fetchedUsers = await userService.getAllUsers(filters);
+            const fetchedUsers = await userService.getAllUsers(filters, selectedSource);
 
             setUsers(fetchedUsers);
             setSelectedIds(new Set());
-
         } catch (error) {
             console.error('Error loading users:', error);
             alert('Failed to load users');
@@ -70,10 +76,6 @@ function UsersPage() {
         return sortOrder === 'asc' ? '↑' : '↓';
     };
 
-    const handleEdit = (userId) => {
-        navigate(`/users/${userId}/edit`);
-    };
-
     const handleCheckboxChange = (userId) => {
         const newSelected = new Set(selectedIds);
         if (newSelected.has(userId)) {
@@ -92,10 +94,6 @@ function UsersPage() {
         }
     };
 
-    const handleGoToHome = () => {
-        navigate('/');
-    };
-
     const handleDeleteSelected = async () => {
         if (selectedIds.size === 0) return;
 
@@ -103,7 +101,7 @@ function UsersPage() {
         try {
             const idsToDelete = Array.from(selectedIds);
 
-            const result = await userService.deleteUsers(idsToDelete);
+            const result = await userService.deleteUsers(idsToDelete, selectedSource);
 
             setResultMessage('Deleted successfully!');
             setResultData(result);
@@ -137,21 +135,39 @@ function UsersPage() {
         <div className={styles.usersContainer}>
             <div className={styles.tableHeader}>
                 <h2>Users Table</h2>
-                <div className={styles.deletePanel}>
-                    <button
-                        className={styles.deleteButton}
-                        disabled={selectedIds.size === 0}
-                        onClick={() => setShowConfirmModal(true)}
+                <div className={styles.actionPanel}>
+                    <select
+                        className={styles.filterSelect}
+                        onChange={(e) => setSelectedSource(e.target.value)}
                     >
-                        Delete Selected ({selectedIds.size})
+                        <option value={DB_VALUE} selected>Local Database</option>
+                        <option value={GOREST_VALUE}>gorest REST API</option>
+                    </select>
+
+                    <button
+                        className={styles.tableButton}
+                        onClick={() =>
+                            selectedSource === GOREST_VALUE ? navigate('/api/users/new') : navigate('/users/new')}
+                    >
+                        Create New User
                     </button>
-                    <div>
-                        <label>Check all</label>
-                        <input
-                            type="checkbox"
-                            checked={selectedIds.size === users.length && users.length > 0}
-                            onChange={handleSelectAll}
-                        /></div>
+                    <div className={styles.deletePanel}>
+                        <button
+                            className={`${styles.tableButton} ${styles.deleteButton}`}
+                            disabled={selectedIds.size === 0}
+                            onClick={() => setShowConfirmModal(true)}
+                        >
+                            Delete Selected ({selectedIds.size})
+                        </button>
+                        <div>
+                            <label>Check all</label>
+                            <input
+                                type="checkbox"
+                                checked={selectedIds.size === users.length && users.length > 0}
+                                onChange={handleSelectAll}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -224,8 +240,8 @@ function UsersPage() {
                         <th>ID</th>
                         <th>Email</th>
                         <th>Name</th>
-                        <th>City</th>
-                        <th>Country</th>
+                        {selectedSource === DB_VALUE && <th>City</th>}
+                        {selectedSource === DB_VALUE && <th>Country</th>}
                         <th>Gender</th>
                         <th>Status</th>
                     </tr>
@@ -236,7 +252,8 @@ function UsersPage() {
                             <td>
                                 <button
                                     className={styles.tableButton}
-                                    onClick={() => handleEdit(user.id)}
+                                    onClick={() =>
+                                        selectedSource === GOREST_VALUE ? navigate(`/api/users/${user.id}/edit`) : navigate(`/users/${user.id}/edit`)}
                                 >
                                     Edit
                                 </button>
@@ -251,8 +268,8 @@ function UsersPage() {
                             <td>{user.id}</td>
                             <td>{user.email}</td>
                             <td>{user.name}</td>
-                            <td>{user.city}</td>
-                            <td>{user.country}</td>
+                            {user.city && <td>{user.city}</td>}
+                            {user.country && <td>{user.country}</td>}
                             <td>{user.gender}</td>
                             <td>{user.status}</td>
                         </tr>
@@ -294,7 +311,7 @@ function UsersPage() {
                 show={showResultModal}
                 resultData={resultData}
                 resultMessage={resultMessage}
-                onClose={handleGoToHome}
+                onClose={() => setShowResultModal(false)}
             />
         </div>
     );

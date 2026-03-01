@@ -1,4 +1,4 @@
-import {userFormErrors} from "../validation.js";
+import {userApiFormErrors, userFormErrors} from "../validation.js";
 import {userService} from "../services/userService.js";
 
 import {useState} from "react";
@@ -6,8 +6,9 @@ import {useNavigate} from "react-router-dom";
 
 import ResultModal from "../components/ResultModal.jsx";
 import UserForm from "../components/UserForm.jsx";
+import {DB_VALUE} from "../constants/constants.js";
 
-function UserFormPage() {
+function UserFormPage({selectedSource}) {
     const [formData, setFormData] = useState({
         email: '',
         name: '',
@@ -25,7 +26,7 @@ function UserFormPage() {
     const navigate = useNavigate();
 
     const validate = () => {
-        const error = userFormErrors(formData);
+        const error = selectedSource === DB_VALUE ? userFormErrors(formData) : userApiFormErrors(formData);
         setErrors(error);
         return !error;
     }
@@ -51,7 +52,7 @@ function UserFormPage() {
         setIsSubmitting(true);
 
         try {
-            const result = await userService.createUser(formData);
+            const result = await userService.createUser(formData, selectedSource);
 
             setResultMessage('User created successfully!');
             setResultData(result);
@@ -75,6 +76,7 @@ function UserFormPage() {
                 handleSubmit={handleSubmit}
                 handleChange={handleChange}
                 isSubmitting={isSubmitting}
+                selectedSource={selectedSource}
             />
 
             <ResultModal

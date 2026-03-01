@@ -16,3 +16,18 @@ export const userFormErrors = (formData) => {
 
     return '';
 }
+
+export const userApiFormErrors = (formData) => {
+    const required = ['email', 'name', 'gender', 'status'];
+    const missing = required.filter(field => !formData[field]);
+
+    if (missing.length > 0) {
+        return 'Please fill in all of the fields';
+    }
+
+    if (!isValidEmail(formData.email.trim())) {
+        return 'Email is invalid';
+    }
+
+    return '';
+}

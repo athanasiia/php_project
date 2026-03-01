@@ -1,7 +1,8 @@
 import styles from '../styles/UserForm.module.css';
 import SelectCountry from "./SelectCountry.jsx";
+import {DB_VALUE} from "../constants/constants.js";
 
-function UserForm({title, errors, submitButtonText, formData, handleSubmit, handleChange, isSubmitting}) {
+function UserForm({title, errors, submitButtonText, formData, handleSubmit, handleChange, isSubmitting, selectedSource}) {
     return (
         <form onSubmit={handleSubmit} className={styles.userForm}>
             <h2>{title}</h2>
@@ -31,22 +32,26 @@ function UserForm({title, errors, submitButtonText, formData, handleSubmit, hand
                 />
             </div>
 
-            <div>
-                <label>Country of residence</label>
-                <SelectCountry value={formData.country} onChange={handleChange} />
-            </div>
+            {selectedSource === DB_VALUE &&
+                <div>
+                    <label>Country of residence</label>
+                    <SelectCountry value={formData.country} onChange={handleChange} />
+                </div>
+            }
 
-            <div>
-                <label>City</label>
-                <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    placeholder="New York"
-                    required
-                />
-            </div>
+            {selectedSource === DB_VALUE &&
+                <div>
+                    <label>City</label>
+                    <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        placeholder="New York"
+                        required
+                    />
+                </div>
+            }
 
             <div>
                 <label>Gender</label>

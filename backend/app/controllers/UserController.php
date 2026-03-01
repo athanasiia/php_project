@@ -61,11 +61,6 @@ class UserController
         }
     }
 
-    public function index() : void
-    {
-        require VIEWS_PATH . "/users/new.php";
-    }
-
     /**
      * @throws JsonException
      */
@@ -158,7 +153,7 @@ class UserController
     /**
      * @throws JsonException
      */
-    public function apiGetAllUsers() : void
+    public function get() : void
     {
         header('Content-Type: application/json; charset=utf-8');
 
