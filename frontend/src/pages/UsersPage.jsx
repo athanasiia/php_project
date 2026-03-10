@@ -38,6 +38,8 @@ function UsersPage() {
 
     const loadUsers = async () => {
         try {
+            setUsers([]);
+
             const filters = {
                 status: filterStatus !== 'all' ? filterStatus : undefined,
                 gender: filterGender !== 'all' ? filterGender : undefined,

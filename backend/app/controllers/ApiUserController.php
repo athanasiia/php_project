@@ -4,7 +4,37 @@ namespace app\controllers;
 
 use Exception;
 use JsonException;
+use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Info(title="GoREST API", version="1.0")
+ */
+/** @OA\Server(
+ *     url="http://project.local",
+ *     description="Development server"
+ * )
+ */
+
+/**
+ * @OA\Schema(
+ *     schema="User",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="email", type="string", format="email", example="test@example.com"),
+ *     @OA\Property(property="name", type="string", example="John Doe"),
+ *     @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male"),
+ *     @OA\Property(property="status", type="string", enum={"active", "inactive"}, example="active")
+ * )
+ */
+/**
+ * @OA\Schema(
+ *     schema="UserInput",
+ *     required={"email", "name", "gender", "status"},
+ *     @OA\Property(property="email", type="string", format="email", example="test@example.com"),
+ *     @OA\Property(property="name", type="string", example="John Doe"),
+ *     @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male"),
+ *     @OA\Property(property="status", type="string", enum={"active", "inactive"}, example="active")
+ * )
+ */
 class ApiUserController
 {
     public function new() : void
@@ -12,6 +42,78 @@ class ApiUserController
         require VIEWS_PATH . "/users/new.php";
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/users",
+     *     summary="Get list of users",
+     *     tags={"Users"},
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         description="Filter by status",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"active", "inactive"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="gender",
+     *         in="query",
+     *         description="Filter by gender",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"male", "female"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search by name",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort",
+     *         in="query",
+     *         description="Field to sort by",
+     *         required=false,
+     *         @OA\Schema(type="string", default="id", enum={"id", "name", "email"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="order",
+     *         in="query",
+     *         description="Sort order",
+     *         required=false,
+     *         @OA\Schema(type="string", default="ASC", enum={"ASC", "DESC"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Number of items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=5, minimum=1, maximum=100)
+     *     ),
+     *     @OA\Parameter(
+     *         name="offset",
+     *         in="query",
+     *         description="Number of items to skip",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=0, minimum=0)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error"
+     *     )
+     * )
+     */
     /**
      * @throws JsonException
      */
@@ -74,6 +176,37 @@ class ApiUserController
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/users/{id}",
+     *     summary="Get user by ID",
+     *     tags={"Users"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="User ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="User retrieved successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User not found"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error retrieving user"
+     *     )
+     * )
+     */
+    /**
      * @throws JsonException
      */
     public function show(int $id) : void
@@ -108,6 +241,34 @@ class ApiUserController
         require VIEWS_PATH . "/users/new.php";
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/users/create",
+     *     summary="Create a new user",
+     *     tags={"Users"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/UserInput")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="User created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="User created successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation failed"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error creating user"
+     *     )
+     * )
+     */
     /**
      * @throws JsonException
      */
@@ -149,6 +310,45 @@ class ApiUserController
     }
 
     /**
+     * @OA\Put(
+     *     path="/api/users/{id}",
+     *     summary="Update an existing user",
+     *     tags={"Users"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="User ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/UserInput")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="User updated successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation failed"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User not found"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error updating user"
+     *     )
+     * )
+     */
+    /**
      * @throws JsonException
      */
     public function update(int $id) : void
@@ -188,6 +388,52 @@ class ApiUserController
         }
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/users",
+     *     summary="Delete multiple users",
+     *     tags={"Users"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"ids"},
+     *             @OA\Property(
+     *                 property="ids",
+     *                 type="array",
+     *                 description="Array of user IDs to delete",
+     *                 @OA\Items(type="integer"),
+     *                 example={1, 2, 3}
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Delete operations completed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Delete operations completed"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 description="Results for each user ID",
+     *                 example={
+     *                     "1": {"success": true, "response": "Deleted"},
+     *                     "2": {"success": true, "response": "Deleted"},
+     *                     "3": {"success": false, "response": {"error": "User not found"}}
+     *                 }
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="No user IDs provided"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error deleting users"
+     *     )
+     * )
+     */
     /**
      * @throws JsonException
      */
